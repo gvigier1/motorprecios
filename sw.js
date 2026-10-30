@@ -1,5 +1,5 @@
 // MotorPrecios : l'app marche hors connexion avec les derniers prix telecharges.
-const SHELL = "mp-shell-v2";
+const SHELL = "mp-shell-v3";
 const DATA = "mp-data";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 

@@ -63,6 +63,12 @@
   .mprice small:first-child { display: block; }
   .mprice b + small { margin-left: 3px; }
   .spec { font: 700 1.05rem/1.2 var(--display); letter-spacing: .01em; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  .tile { display: flex; flex-direction: column; gap: 2px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px; color: inherit; text-decoration: none; min-height: 92px; }
+  .tile:hover { border-color: var(--ink); }
+  .tile .tn { font: 600 1rem/1.2 var(--display); }
+  .tile .tc { color: var(--muted); font-size: .8rem; margin-top: auto; }
+  .tile .tp { color: var(--cheap); font-weight: 600; font-size: .85rem; }
   .more { display: block; width: 100%; margin-top: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 11px; font-weight: 600; cursor: pointer; }
 
   .of { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; padding: 12px 16px; color: inherit; text-decoration: none; }
@@ -244,9 +250,80 @@ const SINON = { plumilla: ["limpiaparabrisa", "escobilla", "wiper"], limpiaparab
   amortiguador: ["shock"], llanta: ["neumatico", "caucho"], neumatico: ["llanta"], bateria: ["acumulador"], foco: ["bombillo", "bombilla"], bombillo: ["foco"],
   pastilla: ["balata", "freno"], balata: ["pastilla"], radiador: ["radiator"], bujia: ["spark"], retrovisor: ["espejo"], espejo: ["retrovisor"] };
 const raiz = w => w.length > 4 ? w.replace(/(es|s)$/, "") : w;          // amortiguadores -> amortiguador
+function cat() {
+  if (!DATA._c) DATA._c = (DATA.catalogo || []).map(c => ({ s: c[0], n: c[1], p: c[2], pa: c[3], url: c[4], stock: c[5], t: c[6], h: fold(c[1]) }));
+  return DATA._c;
+}
+const TEMA_ORDEN = ["Aceites y líquidos", "Llantas y rines", "Baterías y eléctrico", "Frenos", "Suspensión y dirección", "Motor y filtros",
+  "Enfriamiento y A/C", "Iluminación", "Limpiaparabrisas", "Moto", "Carrocería y espejos", "Interior y accesorios",
+  "Limpieza y cuidado", "Audio, cámaras y seguridad", "Herramientas y emergencia", "Otros"];
+const temaDe = x => (DATA.temas && DATA.temas[x.t]) ? DATA.temas[x.t][0] : "Otros";
+function piezaRow(x) {
+  const S = DATA.tiendas;
+  return `<li><a class="art" href="${esc(x.url || "#")}" target="_blank" rel="noopener" data-s="${esc(x.s)}">
+    <span class="nm">${esc(x.n)}${x.pa ? '<span class="tag promo">Oferta</span>' : ""}${x.stock === 0 ? '<span class="tag out">Agotado</span>' : ""}</span>
+    <span class="pr">${money(x.p)}${x.pa ? `<s>${money(x.pa)}</s>` : ""}</span>
+    <span class="sz">${esc(S[x.s] || x.s)}</span></a></li>`;
+}
+function compararCards(ps) {
+  return `<ul class="list">${ps.map(p => {
+    const min = Math.min(...p.items.map(x => cmp(p, x)));
+    return `<li><a class="row" href="#i/${p.id}">
+      <span class="mname">${esc(p.nombre)}</span>
+      <span class="mprice"><small>desde</small><b>${money(min)}</b>${p.medida === "l" ? `<small>${BASE.l}</small>` : ""}</span>
+      <span class="msub">Comparar por medida · ${p.items.length} producto${p.items.length > 1 ? "s" : ""} en ${p.tiendas} tienda${p.tiendas > 1 ? "s" : ""}</span>
+    </a></li>`; }).join("")}</ul>`;
+}
+
+function viewInicio() {
+  const S = DATA.tiendas;
+  const temas = new Map();
+  for (const x of cat()) { const t = temaDe(x); const v = temas.get(t) || { n: 0, min: Infinity }; v.n++; v.min = Math.min(v.min, x.p); temas.set(t, v); }
+  const orden = [...temas.keys()].sort((a, b) => (TEMA_ORDEN.indexOf(a) + 1 || 99) - (TEMA_ORDEN.indexOf(b) + 1 || 99));
+  $("#view").innerHTML = `
+    <div class="search">
+      <input type="search" id="q" value="" placeholder="Ej.: amortiguador corolla, radiador, 205/55 R16" aria-label="Buscar repuesto o medida" autocomplete="off">
+      <div class="count">${cat().length.toLocaleString("es-PA")} repuestos y accesorios en ${Object.keys(S).length} tiendas</div>
+    </div>
+    <div class="tiles">${orden.map(t => { const v = temas.get(t); return `<a class="tile" href="#tema/${encodeURIComponent(t)}">
+      <span class="tn">${esc(t)}</span><span class="tp">desde ${money(v.min)}</span><span class="tc">${v.n.toLocaleString("es-PA")} producto${v.n > 1 ? "s" : ""}</span></a>`; }).join("")}</div>`;
+  bindSearch(viewRepuestos);
+}
+
+let sub = "Todos";
+function viewTema(tema) {
+  tab("p");
+  const xs = cat().filter(x => temaDe(x) === tema);
+  if (!xs.length) { location.hash = ""; return; }
+  const subs = [...new Set(xs.map(x => DATA.temas[x.t][1]))].sort(natural);
+  if (sub !== "Todos" && !subs.includes(sub)) sub = "Todos";
+  const words = fold(state.tq || "").split(/\s+/).filter(Boolean).map(raiz);
+  const list = xs.filter(x => (sub === "Todos" || DATA.temas[x.t][1] === sub) && words.every(w => x.h.includes(w))).sort((a, b) => a.p - b.p);
+  const comp = DATA.productos.filter(p => p.tema === tema && (sub === "Todos" || p.nombre === sub));
+  $("#view").innerHTML = `<article class="det">
+    <button class="back" type="button" id="back">← Repuestos</button>
+    <h2>${esc(tema)}</h2>
+    <div class="search"><input type="search" id="qt" value="${esc(state.tq || "")}" placeholder="Buscar en ${esc(tema.toLowerCase())} (ej. marca o modelo)" aria-label="Buscar en ${esc(tema)}" autocomplete="off">
+      <div class="count">${list.length} producto${list.length === 1 ? "" : "s"}, del más barato al más caro</div></div>
+    ${subs.length > 1 ? `<div class="chips" role="group" aria-label="Tipo">${["Todos", ...subs].map(x => `<button class="chip" type="button" data-sub="${esc(x)}" aria-pressed="${x === sub}">${esc(x)}</button>`).join("")}</div>` : ""}
+    ${comp.length && !words.length ? compararCards(comp) + '<h3 class="sec">Todos los productos</h3>' : ""}
+    ${list.length ? `<ul class="list">${list.slice(0, shown).map(piezaRow).join("")}</ul>
+      ${list.length > shown ? `<button class="more" id="more" type="button">Ver más (${list.length - shown})</button>` : ""}`
+      : `<div class="msg">Nada encontrado con «${esc(state.tq)}».</div>`}
+    <p class="hint" style="margin-top:12px">Revisa que el repuesto sea compatible con tu vehículo (marca, modelo y año) antes de comprar.</p>
+  </article>`;
+  backBtn(); bindStores();
+  const qt = $("#qt");
+  qt.addEventListener("input", e => { state.tq = e.target.value; shown = 60; viewTema(tema); const i = $("#qt"); i.focus(); i.setSelectionRange(state.tq.length, state.tq.length); });
+  $$(".chip").forEach(b => b.addEventListener("click", () => { sub = b.dataset.sub; shown = 60; viewTema(tema); }));
+  const more = $("#more");
+  if (more) more.addEventListener("click", () => { shown += 60; viewTema(tema); });
+  stat("tema/" + slug(tema), tema);
+}
+
 function buscarCatalogo(words) {
   if (!DATA.catalogo || !words.length) return [];
-  if (!DATA._c) DATA._c = DATA.catalogo.map(c => ({ s: c[0], n: c[1], p: c[2], pa: c[3], url: c[4], stock: c[5], h: fold(c[1]) }));
+  cat();
   const alts = words.map(w => { const r = raiz(w); return [r, ...(SINON[r] || [])]; });
   return DATA._c.filter(c => alts.every(a => a.some(w => c.h.includes(w))));
 }
@@ -254,6 +331,7 @@ function buscarCatalogo(words) {
 function viewRepuestos() {
   tab("p");
   const words = fold(q).split(/\s+/).filter(Boolean);
+  if (!words.length) { viewInicio(); return; }
   const k = key(q);
   // une recherche avec des chiffres (205/55r16, 5w30, 24f) cherche d'abord une mesure
   const medidas = k.length >= 2 && /\d/.test(k) ? DATA.productos.flatMap(p => specGroups(p).filter(g => key(g.sp).includes(k)).map(g => ({ p, ...g })))
@@ -282,10 +360,7 @@ function viewRepuestos() {
       </a></li>`; }).join("")}</ul>` : ""}
     ${piezas.length ? `<h3 class="sec">${piezas.length} repuesto${piezas.length > 1 ? "s" : ""} en las tiendas, del más barato al más caro</h3>
       <p style="margin:0 0 8px;color:var(--muted);font-size:.85rem">Revisa que sea compatible con tu vehículo (marca, modelo y año) antes de comprar. Agrega el modelo a la búsqueda, ej. «amortiguador corolla».</p>
-      <ul class="list">${piezas.slice(0, shown).map(x => `<li><a class="art" href="${esc(x.url || "#")}" target="_blank" rel="noopener" data-s="${esc(x.s)}">
-        <span class="nm">${esc(x.n)}${x.pa ? '<span class="tag promo">Oferta</span>' : ""}${x.stock === 0 ? '<span class="tag out">Agotado</span>' : ""}</span>
-        <span class="pr">${money(x.p)}${x.pa ? `<s>${money(x.pa)}</s>` : ""}</span>
-        <span class="sz">${esc(S[x.s] || x.s)}</span></a></li>`).join("")}</ul>
+      <ul class="list">${piezas.slice(0, shown).map(piezaRow).join("")}</ul>
       ${piezas.length > shown ? `<button class="more" id="more" type="button">Ver más (${piezas.length - shown})</button>` : ""}` : ""}
     ${found ? "" : `<div class="msg"><strong>No encontramos «${esc(q)}».</strong><br>Prueba con otra palabra (ej. «radiador» en vez de «radiador de agua») o la medida escrita como en la llanta (ej. 185/65 R15). Solo mostramos repuestos que las tiendas publican con precio en internet.</div>`}`;
   bindStores();
@@ -362,16 +437,16 @@ function viewItem(id, sp) {
 function viewOfertas() {
   tab("o");
   const S = DATA.tiendas;
-  const ts = ["Todos", ...new Set(DATA.ofertas.map(o => o.s))];
+  const ts = ["Todos", ...TEMA_ORDEN.filter(t => DATA.ofertas.some(o => temaDe(o) === t))];
   const words = fold(q).split(/\s+/).filter(Boolean);
-  const list = DATA.ofertas.filter(o => (tienda === "Todos" || o.s === tienda) && words.every(w => fold(o.n + " " + (o.sp || "")).includes(w)));
+  const list = DATA.ofertas.filter(o => (tienda === "Todos" || temaDe(o) === tienda) && words.every(w => fold(o.n + " " + (o.sp || "")).includes(w)));
   $("#view").innerHTML = `
     <div class="search">
       <input type="search" id="q" value="${esc(q)}" placeholder="Buscar en las ofertas" aria-label="Buscar oferta" autocomplete="off">
       <div class="count">${list.length} oferta${list.length === 1 ? "" : "s"}, de la mayor a la menor rebaja</div>
     </div>
-    <div class="chips" role="group" aria-label="Tiendas">
-      ${ts.map(s => `<button class="chip" type="button" data-s="${esc(s)}" aria-pressed="${s === tienda}">${esc(s === "Todos" ? s : (S[s] || s))}</button>`).join("")}
+    <div class="chips" role="group" aria-label="Temas">
+      ${ts.map(s => `<button class="chip" type="button" data-s="${esc(s)}" aria-pressed="${s === tienda}">${esc(s)}</button>`).join("")}
     </div>
     ${list.length ? `<ul class="list">${list.map(o => `<li><a class="of" href="${o.i === 0 ? esc(o.url || "#") : o.sp ? `#i/${o.i}/${encodeURIComponent(o.sp)}` : `#i/${o.i}`}"${o.i === 0 ? ' target="_blank" rel="noopener"' : ""}>
         <span class="pct">−${o.d}%</span>
@@ -584,6 +659,7 @@ function route() {
   let m;
   if ((m = h.match(/^#i\/(\d+)(?:\/(.+))?$/))) { if (!m[2]) state.medida = state.medida || ""; viewItem(+m[1], m[2] != null ? decodeURIComponent(m[2]) : null); }
   else if ((m = h.match(/^#t\/([^/]+(?:%2F[^/]+)?)(\/calificar)?$/i))) viewTaller(decodeURIComponent(m[1]), !!m[2]);
+  else if ((m = h.match(/^#tema\/(.+)$/))) { const t = decodeURIComponent(m[1]); if (state.tema !== t) { state.tema = t; state.tq = ""; sub = "Todos"; shown = 60; } viewTema(t); }
   else if (h === "#ofertas") viewOfertas();
   else if (h === "#talleres") viewTalleres();
   else if (h === "#agregar") viewAgregar();
