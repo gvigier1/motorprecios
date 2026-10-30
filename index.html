@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MotorPrecios Panamá</title>
+<meta name="description" content="Compara precios de aceite, llantas y baterías en Panamá, y encuentra talleres calificados por otros conductores.">
+<meta name="theme-color" content="#1D2228">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MotorPrecios">
+<script data-goatcounter="https://gvigier.goatcounter.com/count" data-goatcounter-settings='{"no_onload": true}' async src="https://gc.zgo.at/count.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1D2228; --bg: #F1EFEA; --paper: #FFFFFF; --line: #DCD8CF; --muted: #626A70;
+    --cheap: #0E7A55; --cheap-soft: #DCEFE6; --promo: #B5560F; --promo-soft: #FBE7D7;
+    --star: #C98A12; --star-off: #D9D4C8; --accent: #F2B33D;
+    --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+  .wrap { max-width: 720px; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom)); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--cheap); outline-offset: 2px; }
+
+  header h1 { font: 700 1.75rem/1.1 var(--display); margin: 6px 0 4px; letter-spacing: -0.02em; }
+  header h1 span { display: inline-block; width: .55em; height: .55em; background: var(--accent); border-radius: 3px; margin-left: 4px; vertical-align: .08em; }
+  header p { margin: 0; color: var(--muted); }
+  .install { display: none; margin-top: 12px; background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
+
+  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 4px; margin-top: 18px; }
+  .tabs a { text-align: center; padding: 9px 0; border-radius: 9px; color: var(--muted); text-decoration: none; font-weight: 600; font-size: .95rem; }
+  .tabs a[aria-current=page] { background: var(--ink); color: #fff; }
+  .tabs .n { display: inline-block; margin-left: 5px; font-size: .72rem; background: var(--promo); color: #fff; border-radius: 999px; padding: 0 6px; }
+
+  .search { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 14px 0 8px; }
+  .search input { width: 100%; padding: 13px 16px; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); font-size: 1.05rem; }
+  .search input:focus { outline: none; border-color: var(--ink); }
+  .count { color: var(--muted); font-size: .85rem; margin-top: 8px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .count select { border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 3px 6px; font-size: .85rem; }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 6px 14px; font-size: .9rem; cursor: pointer; white-space: nowrap; }
+  .chip[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+  h3.sec { font: 600 .8rem/1 var(--body); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 18px 0 8px; }
+  ul.list { list-style: none; margin: 0; padding: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  ul.list > li + li { border-top: 1px solid var(--line); }
+  a.row { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 14px 16px; color: inherit; text-decoration: none; }
+  .mname { font: 600 1.06rem/1.25 var(--display); }
+  .msub { color: var(--muted); font-size: .85rem; }
+  .mprice { grid-row: span 2; align-self: center; text-align: right; white-space: nowrap; }
+  .mprice b { font: 700 1.1rem/1.1 var(--display); color: var(--cheap); }
+  .mprice small { color: var(--muted); font-size: .78rem; }
+  .mprice small:first-child { display: block; }
+  .mprice b + small { margin-left: 3px; }
+  .spec { font: 700 1.05rem/1.2 var(--display); letter-spacing: .01em; }
+  .more { display: block; width: 100%; margin-top: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 11px; font-weight: 600; cursor: pointer; }
+
+  .of { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; padding: 12px 16px; color: inherit; text-decoration: none; }
+  .pct { grid-row: span 2; font: 700 1.05rem/1 var(--display); color: var(--promo); background: var(--promo-soft); border-radius: 10px; padding: 10px 8px; min-width: 56px; text-align: center; }
+  .of .nm { font-weight: 600; font-size: .95rem; line-height: 1.3; }
+  .of .mt { color: var(--muted); font-size: .82rem; }
+  .of .pr { grid-row: span 2; text-align: right; white-space: nowrap; font: 700 1.1rem/1.15 var(--display); color: var(--cheap); }
+  .of .pr s { display: block; font: 400 .78rem var(--body); color: var(--muted); }
+
+  .back { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 6px 0; color: var(--muted); cursor: pointer; font-weight: 600; }
+  .det h2 { font: 700 1.6rem/1.15 var(--display); margin: 8px 0 2px; letter-spacing: -0.01em; }
+  .det .cat { color: var(--muted); margin: 0 0 6px; }
+  .det .hint { color: var(--muted); font-size: .88rem; margin: 0 0 16px; }
+  .art { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 13px 16px; color: inherit; text-decoration: none; }
+  .art.best { background: var(--cheap-soft); }
+  .art .nm { font-weight: 600; line-height: 1.3; }
+  .art .sz { color: var(--muted); font-size: .82rem; }
+  .art .pr { grid-row: span 2; align-self: center; text-align: right; white-space: nowrap; font: 700 1.1rem/1.15 var(--display); }
+  .art.best .pr { color: var(--cheap); }
+  .art .pr s, .art .pr small { display: block; font: 400 .78rem var(--body); color: var(--muted); }
+  .tag { display: inline-block; font-size: .72rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 1px; }
+  .tag.cheap { background: var(--cheap); color: #fff; }
+  .tag.promo { background: var(--promo-soft); color: var(--promo); }
+  .tag.new { background: var(--ink); color: #fff; }
+  .tag.out { background: var(--bg); color: var(--muted); }
+
+  /* talleres */
+  .tl { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 13px 16px; color: inherit; text-decoration: none; }
+  .tl .nm { font: 600 1.02rem/1.25 var(--display); }
+  .tl .mt { color: var(--muted); font-size: .83rem; }
+  .tl .rt { grid-row: span 2; align-self: center; text-align: right; white-space: nowrap; font-size: .85rem; color: var(--muted); }
+  .tl .rt b { font: 700 1.1rem var(--display); color: var(--ink); }
+  .stars { color: var(--star); letter-spacing: 1px; }
+  .stars i { font-style: normal; color: var(--star-off); }
+  .score { display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin: 14px 0; }
+  .score .big { font: 700 2.4rem/1 var(--display); grid-row: span 4; text-align: center; }
+  .score .big small { display: block; font: 400 .8rem var(--body); color: var(--muted); margin-top: 4px; }
+  .crit { display: grid; grid-template-columns: 7.5em 1fr 2em; gap: 8px; align-items: center; font-size: .88rem; }
+  .crit .bar { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .crit .bar span { display: block; height: 100%; background: var(--star); }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 9px 16px; font-weight: 600; color: inherit; text-decoration: none; cursor: pointer; }
+  .btn.main { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .btn[disabled] { opacity: .5; cursor: default; }
+  .rev { padding: 13px 16px; }
+  .rev .top { display: flex; justify-content: space-between; gap: 8px; font-size: .85rem; color: var(--muted); }
+  .rev p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+  form.f { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 16px; margin-top: 12px; }
+  form.f label.l, form.f legend { font-weight: 600; display: block; margin-bottom: 6px; padding: 0; }
+  form.f fieldset { border: 0; margin: 0; padding: 0; }
+  form.f input[type=text], form.f input[type=tel], form.f select, form.f textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  form.f textarea { min-height: 96px; resize: vertical; }
+  .hintf { color: var(--muted); font-size: .82rem; margin-top: 4px; }
+  .rate { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 2px; }
+  .rate input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .rate label { font-size: 2rem; line-height: 1; color: var(--star-off); cursor: pointer; padding: 2px; }
+  .rate input:checked ~ label, .rate label:hover, .rate label:hover ~ label { color: var(--star); }
+  .rate input:focus-visible + label { outline: 3px solid var(--cheap); border-radius: 4px; }
+  .rate-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+  .rate-row .rl { font-weight: 600; }
+  .rate-row .rl small { display: block; font-weight: 400; color: var(--muted); font-size: .8rem; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-size: .9rem; }
+  .check input { margin-top: 4px; width: 18px; height: 18px; flex: none; }
+  .ok { background: var(--cheap-soft); border-radius: 14px; padding: 16px; margin-top: 12px; }
+  .err { color: #A3261B; font-weight: 600; }
+
+  .msg { background: var(--paper); border: 1px dashed var(--line); border-radius: 14px; padding: 20px; color: var(--muted); }
+  .msg strong { color: var(--ink); }
+  footer { margin-top: 28px; color: var(--muted); font-size: .82rem; line-height: 1.5; }
+  footer p { margin: 0 0 8px; }
+  footer a { color: inherit; }
+  @media (prefers-reduced-motion: no-preference) { .det, ul.list { animation: in .2s ease-out; } @keyframes in { from { opacity: 0; transform: translateY(4px); } } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MotorPrecios<span aria-hidden="true"></span></h1>
+    <p>Aceite, llantas y baterías al mejor precio en Panamá, y talleres calificados por otros conductores.</p>
+    <button class="install" id="install" type="button">Instalar la app</button>
+  </header>
+  <nav class="tabs" aria-label="Secciones">
+    <a href="#" id="tab-p">Repuestos</a>
+    <a href="#ofertas" id="tab-o">Ofertas</a>
+    <a href="#talleres" id="tab-t">Talleres</a>
+  </nav>
+  <main id="view" aria-live="polite"><div class="msg" style="margin-top:16px">Cargando precios…</div></main>
+  <footer>
+    <p id="updated"></p>
+    <p>Precios tomados de las tiendas en línea. Pueden variar en el local. Revisa siempre que la medida o especificación corresponda a tu vehículo.</p>
+    <p>Talleres: lista de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> y de los usuarios. Las reseñas se publican después de una revisión.</p>
+  </footer>
+</div>
+
+<script>
+// ---- Supabase : cle publique (lecture des avis approuves, envoi d'avis "en attente" uniquement)
+const SB_URL = "https://gxwwzjtzkngsratunjmt.supabase.co/rest/v1/";
+const SB_KEY = "sb_publishable_1Os-EygWwd0-xy2FyScsrQ_TkbwpE6G";
+const sb = (path, opts = {}) => fetch(SB_URL + path, { ...opts, headers: { apikey: SB_KEY, "Content-Type": "application/json", ...(opts.headers || {}) } });
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fold = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const key = s => fold(s).replace(/[^a-z0-9.]/g, "");
+const money = v => "$" + v.toFixed(2);
+const BASE = { l: "por litro", u: "c/u" };
+const TIPOS = { carro: "Taller de carros", moto: "Taller de motos", llantas: "Llantera", repuestos: "Repuestos", otro: "Otro" };
+const CRIT = [["precio", "Precio justo", "¿Cobró lo acordado?"], ["calidad", "Calidad", "¿Quedó bien el trabajo?"],
+              ["honestidad", "Honestidad", "¿Explicó claro, sin trabajos innecesarios?"], ["plazo", "Puntualidad", "¿Entregó cuando dijo?"]];
+const TRABAJOS = ["Cambio de aceite", "Frenos", "Llantas / alineación", "Batería / eléctrico", "Motor", "Suspensión", "Aire acondicionado", "Chapistería / pintura", "Mantenimiento de moto", "Diagnóstico", "Otro"];
+
+// Statistiques anonymes (GoatCounter : sans cookies)
+const STANDALONE = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const gcQueue = [];
+function stat(path, title, event = false) { gcQueue.push({ path: "motor/" + path, title: title || path, event }); flushStats(); }
+function flushStats() {
+  if (!window.goatcounter || !window.goatcounter.count) { setTimeout(flushStats, 1500); return; }
+  while (gcQueue.length) { try { window.goatcounter.count(gcQueue.shift()); } catch {} }
+}
+const slug = s => fold(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+let searchTimer = null;
+function statSearch(where, text, found) {
+  clearTimeout(searchTimer);
+  const t = slug(text);
+  if (t.length < 3) return;
+  searchTimer = setTimeout(() => stat(`${where}/${found ? "buscar" : "buscar-sin-resultado"}/${t}`, text, true), 1500);
+}
+
+// identifiant anonyme de l'appareil : un seul avis par atelier et par telephone
+function device() {
+  let id = null;
+  try { id = localStorage.getItem("mp-dev"); } catch {}
+  if (!id) {
+    id = crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+    try { localStorage.setItem("mp-dev", id); } catch {}
+  }
+  return id;
+}
+function rated(id, set) {
+  try { const s = JSON.parse(localStorage.getItem("mp-rated") || "[]"); if (set) { s.push(id); localStorage.setItem("mp-rated", JSON.stringify(s)); } return s.includes(id); } catch { return false; }
+}
+
+let DATA = null, NOTAS = {}, EXTRA = [], q = "", tipo = "Todos", tienda = "Todos", orden = "nota", POS = null, shown = 60;
+const state = { p: "", o: "", t: "" };
+
+function fechaLarga(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("es-PA", { day: "numeric", month: "long" }) + ", " + d.toLocaleTimeString("es-PA", { hour: "2-digit", minute: "2-digit" });
+}
+let lastTab = "p";
+function tab(which) {
+  if (which !== lastTab) { state[lastTab] = q; q = state[which]; lastTab = which; shown = 60; }
+  for (const [id, w] of [["#tab-p", "p"], ["#tab-o", "o"], ["#tab-t", "t"]]) {
+    if (w === which) $(id).setAttribute("aria-current", "page"); else $(id).removeAttribute("aria-current");
+  }
+}
+function bindSearch(render) {
+  $("#q").addEventListener("input", e => { q = e.target.value; shown = 60; render(); const i = $("#q"); i.focus(); i.setSelectionRange(q.length, q.length); });
+}
+function sizeTxt(x) {
+  if (!x.q || x.u === "u") return "";
+  return x.q < 1 ? `${Math.round(x.q * 1000)} ml` : `${+x.q.toFixed(2)} litros`;
+}
+const cmp = (p, x) => p.medida === "l" && x.pb != null && x.u === "l" ? x.pb : x.p;
+const natural = (a, b) => a.localeCompare(b, "es", { numeric: true });
+
+// ---------------------------------------------------------------- Repuestos
+function specGroups(p) {
+  const g = new Map();
+  for (const x of p.items) { if (!x.sp) continue; if (!g.has(x.sp)) g.set(x.sp, []); g.get(x.sp).push(x); }
+  return [...g.entries()].map(([sp, xs]) => ({ sp, xs, tiendas: new Set(xs.map(x => x.s)).size, min: Math.min(...xs.map(x => cmp(p, x))) }));
+}
+
+function viewRepuestos() {
+  tab("p");
+  const words = fold(q).split(/\s+/).filter(Boolean);
+  const k = key(q);
+  // une recherche avec des chiffres (205/55r16, 5w30, 24f) cherche d'abord une mesure
+  const medidas = k.length >= 2 && /\d/.test(k) ? DATA.productos.flatMap(p => specGroups(p).filter(g => key(g.sp).includes(k)).map(g => ({ p, ...g })))
+    .sort((a, b) => b.tiendas - a.tiendas || natural(a.sp, b.sp)) : [];
+  const hay = p => p._h || (p._h = fold([p.nombre, p.categoria, ...p.items.map(x => x.n + " " + (x.m || ""))].join(" ")));
+  const list = DATA.productos.filter(p => words.every(w => hay(p).includes(w)));
+  const found = medidas.length + list.length;
+  $("#view").innerHTML = `
+    <div class="search">
+      <input type="search" id="q" value="${esc(q)}" placeholder="Ej.: 205/55 R16, 20W-50, batería 24F" aria-label="Buscar repuesto o medida" autocomplete="off">
+    </div>
+    ${medidas.length ? `<h3 class="sec">Medidas encontradas</h3><ul class="list">${medidas.slice(0, shown).map(m => `<li><a class="row" href="#i/${m.p.id}/${encodeURIComponent(m.sp)}">
+        <span class="spec">${esc(m.sp)}</span>
+        <span class="mprice"><small>desde</small><b>${money(m.min)}</b>${m.p.medida === "l" ? `<small>${BASE.l}</small>` : ""}</span>
+        <span class="msub">${esc(m.p.nombre)} · ${m.xs.length} opciones en ${m.tiendas} tienda${m.tiendas > 1 ? "s" : ""}</span>
+      </a></li>`).join("")}</ul>` : ""}
+    ${list.length ? `${medidas.length ? '<h3 class="sec">Categorías</h3>' : ""}<ul class="list" style="${medidas.length ? "" : "margin-top:8px"}">${list.map(p => {
+      const min = Math.min(...p.items.map(x => cmp(p, x)));
+      return `<li><a class="row" href="#i/${p.id}">
+        <span class="mname">${esc(p.nombre)}</span>
+        <span class="mprice"><small>desde</small><b>${money(min)}</b>${p.medida === "l" ? `<small>${BASE.l}</small>` : ""}</span>
+        <span class="msub">${p.items.length} producto${p.items.length > 1 ? "s" : ""} en ${p.tiendas} tienda${p.tiendas > 1 ? "s" : ""}</span>
+      </a></li>`; }).join("")}</ul>` : ""}
+    ${found ? "" : `<div class="msg"><strong>No encontramos «${esc(q)}».</strong><br>Prueba con la medida escrita como en la llanta (ej. 185/65 R15) o la viscosidad del aceite (ej. 10W-30).</div>`}`;
+  bindSearch(viewRepuestos);
+  if (q) statSearch("repuestos", q, found > 0);
+}
+
+function artRow(p, x, best) {
+  const S = DATA.tiendas;
+  const unit = p.medida === "l" && x.pb != null ? `${money(x.pb)} ${BASE.l}` : "";
+  return `<li><a class="art${best ? " best" : ""}" href="${esc(x.url || "#")}" target="_blank" rel="noopener" data-s="${esc(x.s)}">
+    <span class="nm">${esc(x.n)}${best ? '<span class="tag cheap">Mejor precio</span>' : ""}${x.pa ? '<span class="tag promo">Oferta</span>' : ""}${x.stock === 0 ? '<span class="tag out">Agotado</span>' : ""}</span>
+    <span class="pr">${money(x.p)}${x.pa ? `<s>${money(x.pa)}</s>` : ""}${unit ? `<small>${unit}</small>` : ""}</span>
+    <span class="sz">${[esc(S[x.s] || x.s), x.m ? esc(x.m) : "", sizeTxt(x)].filter(Boolean).join(" · ")}</span>
+  </a></li>`;
+}
+function bindStores() { $$(".art").forEach(a => a.addEventListener("click", () => stat("tienda/" + a.dataset.s, "Ver en " + a.dataset.s, true))); }
+function backBtn(label) {
+  $("#back").addEventListener("click", () => history.length > 1 ? history.back() : (location.hash = ""));
+  return label;
+}
+
+function viewItem(id, sp) {
+  tab("p");
+  const p = DATA.productos.find(x => x.id === id);
+  if (!p) { location.hash = ""; return; }
+  const groups = specGroups(p);
+  let html;
+  if (sp != null) {
+    const xs = (sp === "_" ? p.items.filter(x => !x.sp) : p.items.filter(x => x.sp === sp)).slice().sort((a, b) => cmp(p, a) - cmp(p, b));
+    html = `<button class="back" type="button" id="back">← ${esc(p.nombre)}</button>
+      <h2>${sp === "_" ? "Otras medidas" : esc(sp)}</h2>
+      <p class="cat">${esc(p.nombre)} · ${xs.length} opci${xs.length > 1 ? "ones" : "ón"} en ${new Set(xs.map(x => x.s)).size} tienda${new Set(xs.map(x => x.s)).size > 1 ? "s" : ""}</p>
+      <p class="hint">${p.medida === "l" ? "Ordenado por precio por litro, para comparar envases de distinto tamaño." : "Ordenado del más barato al más caro. Toca un producto para verlo en la tienda."}</p>
+      <ul class="list">${xs.map((x, i) => artRow(p, x, i === 0 && xs.length > 1)).join("")}</ul>`;
+    stat("i/" + slug(p.nombre) + "/" + slug(sp), p.nombre + " " + sp);
+  } else if (!groups.length) {
+    const xs = p.items.slice().sort((a, b) => cmp(p, a) - cmp(p, b));
+    html = `<button class="back" type="button" id="back">← Repuestos</button>
+      <h2>${esc(p.nombre)}</h2><p class="cat">${esc(p.categoria)} · ${xs.length} productos</p>
+      <p class="hint">${p.medida === "l" ? "Ordenado por precio por litro." : "Del más barato al más caro."} Revisa que sea el indicado para tu vehículo.</p>
+      <ul class="list">${xs.map((x, i) => artRow(p, x, i === 0 && xs.length > 1)).join("")}</ul>`;
+    stat("i/" + slug(p.nombre), p.nombre);
+  } else {
+    const sinSpec = p.items.filter(x => !x.sp).length;
+    const k = key(state.medida || "");
+    const gs = groups.filter(g => !k || key(g.sp).includes(k)).sort((a, b) => b.tiendas - a.tiendas || natural(a.sp, b.sp));
+    const lab = { llanta: "medida", llanta_moto: "medida", viscosidad: "viscosidad", bateria: "grupo", bateria_moto: "modelo", dot: "tipo", pulgadas: "largo" };
+    html = `<button class="back" type="button" id="back">← Repuestos</button>
+      <h2>${esc(p.nombre)}</h2><p class="cat">${esc(p.categoria)} · ${p.items.length} producto${p.items.length > 1 ? "s" : ""} en ${p.tiendas} tienda${p.tiendas > 1 ? "s" : ""}</p>
+      <div class="search"><input type="search" id="qm" value="${esc(state.medida || "")}" placeholder="Filtrar ${groups.length} medidas" aria-label="Filtrar por medida" autocomplete="off"></div>
+      <ul class="list">${gs.slice(0, shown).map(g => `<li><a class="row" href="#i/${p.id}/${encodeURIComponent(g.sp)}">
+        <span class="spec">${esc(g.sp)}</span>
+        <span class="mprice"><small>desde</small><b>${money(g.min)}</b>${p.medida === "l" ? `<small>${BASE.l}</small>` : ""}</span>
+        <span class="msub">${g.xs.length} opcion${g.xs.length > 1 ? "es" : ""} · ${g.tiendas > 1 ? `<b style="color:var(--cheap)">${g.tiendas} tiendas</b>` : "1 tienda"}</span>
+      </a></li>`).join("")}
+      ${sinSpec ? `<li><a class="row" href="#i/${p.id}/_"><span class="mname">Otras</span><span class="mprice"></span><span class="msub">${sinSpec} productos sin medida reconocida</span></a></li>` : ""}</ul>
+      ${gs.length > shown ? `<button class="more" id="more" type="button">Ver más (${gs.length - shown})</button>` : ""}`;
+    stat("i/" + slug(p.nombre), p.nombre);
+  }
+  $("#view").innerHTML = `<article class="det">${html}</article>`;
+  backBtn();
+  bindStores();
+  const qm = $("#qm");
+  if (qm) qm.addEventListener("input", e => { state.medida = e.target.value; viewItem(id); const i = $("#qm"); i.focus(); i.setSelectionRange(state.medida.length, state.medida.length); });
+  const more = $("#more");
+  if (more) more.addEventListener("click", () => { shown += 60; viewItem(id); });
+  if (!qm) window.scrollTo(0, 0);
+}
+
+// ---------------------------------------------------------------- Ofertas
+function viewOfertas() {
+  tab("o");
+  const S = DATA.tiendas;
+  const ts = ["Todos", ...new Set(DATA.ofertas.map(o => o.s))];
+  const words = fold(q).split(/\s+/).filter(Boolean);
+  const list = DATA.ofertas.filter(o => (tienda === "Todos" || o.s === tienda) && words.every(w => fold(o.n + " " + (o.sp || "")).includes(w)));
+  $("#view").innerHTML = `
+    <div class="search">
+      <input type="search" id="q" value="${esc(q)}" placeholder="Buscar en las ofertas" aria-label="Buscar oferta" autocomplete="off">
+      <div class="count">${list.length} oferta${list.length === 1 ? "" : "s"}, de la mayor a la menor rebaja</div>
+    </div>
+    <div class="chips" role="group" aria-label="Tiendas">
+      ${ts.map(s => `<button class="chip" type="button" data-s="${esc(s)}" aria-pressed="${s === tienda}">${esc(s === "Todos" ? s : (S[s] || s))}</button>`).join("")}
+    </div>
+    ${list.length ? `<ul class="list">${list.map(o => `<li><a class="of" href="${o.sp ? `#i/${o.i}/${encodeURIComponent(o.sp)}` : `#i/${o.i}`}">
+        <span class="pct">−${o.d}%</span>
+        <span class="nm">${esc(o.n)}${o.nueva ? '<span class="tag new">Nueva</span>' : ""}${o.v === "minimo" ? '<span class="tag cheap">Más bajo en 30 días</span>' : ""}</span>
+        <span class="pr">${money(o.p)}<s>${money(o.pa)}</s></span>
+        <span class="mt">${esc(S[o.s] || o.s)}${o.sp ? " · " + esc(o.sp) : ""}${sizeTxt(o) ? " · " + sizeTxt(o) : ""}</span>
+      </a></li>`).join("")}</ul>`
+    : `<div class="msg"><strong>No hay ofertas${q ? ` para «${esc(q)}»` : ""}.</strong><br>Vuelve mañana: revisamos los precios cada noche.</div>`}`;
+  bindSearch(viewOfertas);
+  $$(".chip").forEach(b => b.addEventListener("click", () => { tienda = b.dataset.s; viewOfertas(); }));
+  stat("ofertas", "Ofertas");
+}
+
+// ---------------------------------------------------------------- Talleres
+function allTalleres() {
+  if (!DATA._t) DATA._t = [...DATA.talleres, ...EXTRA];
+  return DATA._t;
+}
+function starsTxt(v) {
+  const n = Math.round(v);
+  return `<span class="stars" aria-label="${v} de 5">${"★".repeat(n)}<i>${"★".repeat(5 - n)}</i></span>`;
+}
+function dist(t) {
+  if (!POS || t.lat == null) return null;
+  const R = 6371, r = Math.PI / 180, dLa = (t.lat - POS.lat) * r, dLo = (t.lon - POS.lon) * r;
+  const a = Math.sin(dLa / 2) ** 2 + Math.cos(POS.lat * r) * Math.cos(t.lat * r) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+const kmTxt = d => d == null ? "" : d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(d < 10 ? 1 : 0)} km`;
+
+function viewTalleres() {
+  tab("t");
+  const tipos = ["Todos", ...Object.keys(TIPOS).filter(k => allTalleres().some(t => t.t === k))];
+  const words = fold(q).split(/\s+/).filter(Boolean);
+  let list = allTalleres().filter(t => (tipo === "Todos" || t.t === tipo) && words.every(w => fold(t.n + " " + t.dir).includes(w)));
+  if (orden === "cerca" && POS) list = list.map(t => ({ t, d: dist(t) })).sort((a, b) => (a.d ?? 1e9) - (b.d ?? 1e9)).map(x => x.t);
+  else list = list.slice().sort((a, b) => ((NOTAS[b.id]?.general || 0) - (NOTAS[a.id]?.general || 0)) || ((NOTAS[b.id]?.n || 0) - (NOTAS[a.id]?.n || 0)) || natural(a.n, b.n));
+  $("#view").innerHTML = `
+    <div class="search">
+      <input type="search" id="q" value="${esc(q)}" placeholder="Nombre del taller o zona" aria-label="Buscar taller" autocomplete="off">
+      <div class="count"><span>${list.length} taller${list.length === 1 ? "" : "es"}</span>
+        <select id="orden" aria-label="Ordenar"><option value="nota"${orden === "nota" ? " selected" : ""}>Mejor calificados</option><option value="cerca"${orden === "cerca" ? " selected" : ""}>Cerca de mí</option></select></div>
+    </div>
+    <div class="chips" role="group" aria-label="Tipo">
+      ${tipos.map(k => `<button class="chip" type="button" data-t="${k}" aria-pressed="${k === tipo}">${k === "Todos" ? "Todos" : esc(TIPOS[k])}</button>`).join("")}
+    </div>
+    ${list.length ? `<ul class="list">${list.slice(0, shown).map(t => {
+      const nt = NOTAS[t.id], d = dist(t);
+      return `<li><a class="tl" href="#t/${encodeURIComponent(t.id)}">
+        <span class="nm">${esc(t.n)}</span>
+        <span class="rt">${nt ? `<b>${nt.general.toFixed(1)}</b> ★<br>${nt.n} reseña${nt.n > 1 ? "s" : ""}` : "Sin reseñas"}</span>
+        <span class="mt">${[esc(TIPOS[t.t] || ""), esc(t.dir), kmTxt(d)].filter(Boolean).join(" · ")}</span>
+      </a></li>`; }).join("")}</ul>
+      ${list.length > shown ? `<button class="more" id="more" type="button">Ver más (${list.length - shown})</button>` : ""}`
+    : `<div class="msg"><strong>No encontramos «${esc(q)}».</strong><br>Si conoces el taller, agrégalo para que otros puedan calificarlo.</div>`}
+    <div class="actions" style="margin-top:16px"><a class="btn" href="#agregar">+ Agregar un taller que falta</a></div>`;
+  bindSearch(viewTalleres);
+  $$(".chip").forEach(b => b.addEventListener("click", () => { tipo = b.dataset.t; shown = 60; viewTalleres(); }));
+  const more = $("#more");
+  if (more) more.addEventListener("click", () => { shown += 60; viewTalleres(); });
+  $("#orden").addEventListener("change", e => {
+    orden = e.target.value;
+    if (orden === "cerca" && !POS) {
+      if (!navigator.geolocation) { orden = "nota"; viewTalleres(); return; }
+      navigator.geolocation.getCurrentPosition(p => { POS = { lat: p.coords.latitude, lon: p.coords.longitude }; stat("talleres/cerca", "Talleres cerca", true); viewTalleres(); },
+        () => { orden = "nota"; viewTalleres(); alertMsg("No pudimos obtener tu ubicación. Revisa el permiso de ubicación del navegador."); }, { timeout: 10000, maximumAge: 300000 });
+    } else viewTalleres();
+  });
+  if (q) statSearch("talleres", q, list.length > 0);
+  stat("talleres", "Talleres");
+}
+function alertMsg(t) {
+  const d = document.createElement("div"); d.className = "msg err"; d.style.marginTop = "12px"; d.textContent = t;
+  $("#view").prepend(d);
+}
+
+async function viewTaller(id, form) {
+  tab("t");
+  const t = allTalleres().find(x => x.id === id);
+  if (!t) { location.hash = "#talleres"; return; }
+  const nt = NOTAS[id];
+  const maps = t.lat != null ? `https://www.google.com/maps/search/?api=1&query=${t.lat},${t.lon}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.n + " Panamá")}`;
+  const ya = rated(id);
+  $("#view").innerHTML = `<article class="det">
+    <button class="back" type="button" id="back">← Talleres</button>
+    <h2>${esc(t.n)}</h2>
+    <p class="cat">${[esc(TIPOS[t.t] || ""), esc(t.dir), kmTxt(dist(t))].filter(Boolean).join(" · ")}</p>
+    ${t.h ? `<p class="hint">Horario: ${esc(t.h)}</p>` : ""}
+    <div class="actions">
+      ${t.tel ? `<a class="btn" href="tel:${esc(t.tel.replace(/[^\d+]/g, ""))}" data-a="llamar">Llamar</a>` : ""}
+      <a class="btn" href="${maps}" target="_blank" rel="noopener" data-a="mapa">Cómo llegar</a>
+      ${t.web ? `<a class="btn" href="${esc(/^https?:/.test(t.web) ? t.web : "https://" + t.web)}" target="_blank" rel="noopener" data-a="web">Sitio web</a>` : ""}
+    </div>
+    ${nt ? `<div class="score"><div class="big">${nt.general.toFixed(1)}<small>${nt.n} reseña${nt.n > 1 ? "s" : ""}</small></div>
+      ${CRIT.map(([c, lab]) => `<div class="crit"><span>${lab}</span><span class="bar"><span style="width:${(nt[c] / 5) * 100}%"></span></span><span>${(+nt[c]).toFixed(1)}</span></div>`).join("")}</div>`
+      : `<div class="msg" style="margin:14px 0">Todavía no hay reseñas. ¿Llevaste tu carro o moto aquí? Sé el primero en calificar.</div>`}
+    <div id="formbox">${ya ? `<div class="ok">Ya calificaste este taller desde este teléfono. ¡Gracias!</div>` : `<button class="btn main" type="button" id="calificar">Calificar este taller</button>`}</div>
+    <h3 class="sec">Reseñas</h3>
+    <div id="revs"><div class="msg">Cargando reseñas…</div></div>
+  </article>`;
+  backBtn();
+  $$(".actions a").forEach(a => a.addEventListener("click", () => stat("taller/" + a.dataset.a, a.textContent, true)));
+  const b = $("#calificar");
+  if (b) b.addEventListener("click", () => showForm(t));
+  if (form && !ya) showForm(t);
+  else window.scrollTo(0, 0);
+  stat("taller/" + slug(t.n), t.n);
+  try {
+    const r = await sb(`resenas_publicas?taller_id=eq.${encodeURIComponent(id)}&order=creado.desc&limit=50`);
+    const rs = r.ok ? await r.json() : [];
+    if (!$("#revs")) return;
+    $("#revs").innerHTML = rs.length ? `<ul class="list">${rs.map(x => {
+      const g = (x.nota_precio + x.nota_calidad + x.nota_honestidad + x.nota_plazo) / 4;
+      return `<li class="rev"><div class="top"><span>${starsTxt(g)} ${x.trabajo ? esc(x.trabajo) : ""}</span><span>${new Date(x.creado).toLocaleDateString("es-PA", { day: "numeric", month: "short", year: "numeric" })}</span></div>
+        ${x.comentario ? `<p>${esc(x.comentario)}</p>` : ""}</li>`; }).join("")}</ul>`
+      : `<div class="msg">Sin reseñas publicadas.</div>`;
+  } catch { if ($("#revs")) $("#revs").innerHTML = `<div class="msg">No se pudieron cargar las reseñas (¿sin conexión?).</div>`; }
+}
+
+function showForm(t) {
+  $("#formbox").innerHTML = `<form class="f" id="rf" novalidate>
+    ${CRIT.map(([c, lab, sub]) => `<fieldset class="rate-row"><legend class="rl">${lab}<small>${sub}</small></legend>
+      <div class="rate">${[5, 4, 3, 2, 1].map(v => `<input type="radio" id="${c}${v}" name="${c}" value="${v}"><label for="${c}${v}" title="${v} de 5">★</label>`).join("")}</div></fieldset>`).join("")}
+    <div><label class="l" for="trabajo">¿Qué trabajo te hicieron?</label>
+      <select id="trabajo"><option value="">Elegir…</option>${TRABAJOS.map(x => `<option>${x}</option>`).join("")}</select></div>
+    <div><label class="l" for="comentario">Tu experiencia (opcional)</label>
+      <textarea id="comentario" maxlength="600" placeholder="¿Qué te gustó o qué no? ¿Cuánto pagaste más o menos?"></textarea>
+      <div class="hintf">Sin insultos ni datos personales (nombres, teléfonos). Revisamos cada reseña antes de publicarla.</div></div>
+    <label class="check"><input type="checkbox" id="honesto"> <span>Fui cliente de este taller y mi opinión es honesta.</span></label>
+    <div id="ferr" class="err" role="alert"></div>
+    <div class="actions" style="margin:0"><button class="btn main" type="submit" id="enviar">Enviar reseña</button><button class="btn" type="button" id="cancelar">Cancelar</button></div>
+  </form>`;
+  $("#cancelar").addEventListener("click", () => viewTaller(t.id));
+  $("#rf").addEventListener("submit", async e => {
+    e.preventDefault();
+    const notas = {};
+    for (const [c, lab] of CRIT) {
+      const v = document.querySelector(`input[name=${c}]:checked`);
+      if (!v) { $("#ferr").textContent = `Falta calificar: ${lab}.`; return; }
+      notas["nota_" + c] = +v.value;
+    }
+    if (!$("#honesto").checked) { $("#ferr").textContent = "Confirma que fuiste cliente del taller."; return; }
+    $("#ferr").textContent = ""; $("#enviar").disabled = true; $("#enviar").textContent = "Enviando…";
+    const body = { taller_id: t.id, taller_nombre: t.n.slice(0, 120), ...notas, trabajo: $("#trabajo").value || null,
+                   comentario: $("#comentario").value.trim().slice(0, 600) || null, dispositivo: device() };
+    try {
+      const r = await sb("resenas", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
+      if (r.ok || r.status === 409) {
+        rated(t.id, true);
+        $("#formbox").innerHTML = `<div class="ok"><strong>${r.ok ? "¡Gracias por tu reseña!" : "Ya calificaste este taller."}</strong><br>${r.ok ? "La publicaremos después de revisarla (normalmente en 1 o 2 días)." : "Solo se permite una reseña por taller desde cada teléfono."}</div>`;
+        if (r.ok) stat("resena-enviada", "Reseña enviada", true);
+      } else throw new Error(r.status);
+    } catch {
+      $("#ferr").textContent = "No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.";
+      $("#enviar").disabled = false; $("#enviar").textContent = "Enviar reseña";
+    }
+  });
+  $("#formbox").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function viewAgregar() {
+  tab("t");
+  let pos = null;
+  $("#view").innerHTML = `<article class="det">
+    <button class="back" type="button" id="back">← Talleres</button>
+    <h2>Agregar un taller</h2>
+    <p class="hint">Solo negocios (talleres, llanteras, tiendas de repuestos). Lo revisamos antes de mostrarlo en la lista.</p>
+    <form class="f" id="af" novalidate>
+      <div><label class="l" for="nombre">Nombre del negocio</label><input type="text" id="nombre" maxlength="120" required></div>
+      <div><label class="l" for="tipo">Tipo</label><select id="tipo">${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></div>
+      <div><label class="l" for="direccion">Dirección o referencia</label><input type="text" id="direccion" maxlength="200" placeholder="Ej.: Vía España, frente al Super 99"></div>
+      <div><label class="l" for="telefono">Teléfono del negocio (opcional)</label><input type="tel" id="telefono" maxlength="30"></div>
+      <div><button class="btn" type="button" id="ubic">📍 Estoy en el taller: usar mi ubicación</button><div class="hintf" id="ubicmsg"></div></div>
+      <div id="aerr" class="err" role="alert"></div>
+      <div class="actions" style="margin:0"><button class="btn main" type="submit" id="aenviar">Enviar</button></div>
+    </form>
+  </article>`;
+  backBtn();
+  $("#ubic").addEventListener("click", () => {
+    if (!navigator.geolocation) { $("#ubicmsg").textContent = "Tu navegador no permite la ubicación."; return; }
+    $("#ubicmsg").textContent = "Buscando tu ubicación…";
+    navigator.geolocation.getCurrentPosition(p => { pos = { lat: +p.coords.latitude.toFixed(5), lon: +p.coords.longitude.toFixed(5) }; $("#ubicmsg").textContent = "Ubicación agregada ✓"; },
+      () => { $("#ubicmsg").textContent = "No pudimos obtener la ubicación (revisa el permiso)."; }, { timeout: 10000 });
+  });
+  $("#af").addEventListener("submit", async e => {
+    e.preventDefault();
+    const nombre = $("#nombre").value.trim();
+    if (nombre.length < 3) { $("#aerr").textContent = "Escribe el nombre del negocio."; return; }
+    if (!$("#direccion").value.trim() && !pos) { $("#aerr").textContent = "Indica la dirección o usa tu ubicación."; return; }
+    $("#aerr").textContent = ""; $("#aenviar").disabled = true;
+    const body = { nombre, tipo: $("#tipo").value, direccion: $("#direccion").value.trim() || null, telefono: $("#telefono").value.trim() || null,
+                   lat: pos?.lat ?? null, lon: pos?.lon ?? null, dispositivo: device() };
+    try {
+      const r = await sb("talleres_propuestos", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
+      if (!r.ok) throw new Error(r.status);
+      $("#af").outerHTML = `<div class="ok"><strong>¡Gracias!</strong><br>Revisaremos el taller y aparecerá en la lista en 1 o 2 días.</div>`;
+      stat("taller-propuesto", "Taller propuesto", true);
+    } catch { $("#aerr").textContent = "No se pudo enviar. Revisa tu conexión e inténtalo de nuevo."; $("#aenviar").disabled = false; }
+  });
+  window.scrollTo(0, 0);
+}
+
+// ---------------------------------------------------------------- routes
+function route() {
+  if (!DATA) return;
+  const h = location.hash;
+  let m;
+  if ((m = h.match(/^#i\/(\d+)(?:\/(.+))?$/))) { if (!m[2]) state.medida = state.medida || ""; viewItem(+m[1], m[2] != null ? decodeURIComponent(m[2]) : null); }
+  else if ((m = h.match(/^#t\/([^/]+(?:%2F[^/]+)?)(\/calificar)?$/i))) viewTaller(decodeURIComponent(m[1]), !!m[2]);
+  else if (h === "#ofertas") viewOfertas();
+  else if (h === "#talleres") viewTalleres();
+  else if (h === "#agregar") viewAgregar();
+  else { state.medida = ""; viewRepuestos(); }
+}
+
+async function loadReviews() {
+  try {
+    const [n, a] = await Promise.all([sb("notas_talleres?select=*"), sb("talleres_aprobados?select=*")]);
+    if (n.ok) for (const x of await n.json()) NOTAS[x.taller_id] = { n: +x.n, general: +x.general, precio: +x.precio, calidad: +x.calidad, honestidad: +x.honestidad, plazo: +x.plazo };
+    if (a.ok) EXTRA = (await a.json()).map(x => ({ id: "p-" + x.id, n: x.nombre, t: x.tipo, dir: x.direccion || "", tel: x.telefono || "", lat: x.lat, lon: x.lon, web: "", h: "" }));
+    if (DATA) { DATA._t = null; if (/^#t|^#talleres/.test(location.hash)) route(); }
+  } catch {}
+}
+
+async function load() {
+  stat(STANDALONE ? "inicio-app" : "inicio", STANDALONE ? "Inicio (app instalada)" : "Inicio (navegador)");
+  loadReviews();
+  try {
+    const r = await fetch("precios.json", { cache: "no-cache" });
+    DATA = await r.json();
+    const n = DATA.ofertas.length;
+    if (n) $("#tab-o").innerHTML = `Ofertas<span class="n">${n}</span>`;
+    $("#updated").textContent = `Precios actualizados: ${fechaLarga(DATA.generado)} (${Object.keys(DATA.tiendas).length} tiendas)`;
+    route();
+  } catch {
+    $("#view").innerHTML = `<div class="msg" style="margin-top:16px"><strong>No se pudieron cargar los precios.</strong><br>Revisa tu conexión a internet y vuelve a abrir la app.</div>`;
+  }
+}
+
+window.addEventListener("hashchange", route);
+let deferred = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; $("#install").style.display = "inline-block"; });
+$("#install").addEventListener("click", async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $("#install").style.display = "none"; });
+window.addEventListener("appinstalled", () => stat("instalada", "App instalada", true));
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+load();
+</script>
+</body>
+</html>
