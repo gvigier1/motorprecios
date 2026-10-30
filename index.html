@@ -142,7 +142,7 @@
 <div class="wrap">
   <header>
     <h1>MotorPrecios<span aria-hidden="true"></span></h1>
-    <p>Aceite, llantas y baterías al mejor precio en Panamá, y talleres calificados por otros conductores.</p>
+    <p>Repuestos y accesorios al mejor precio en Panamá, y talleres calificados por otros conductores.</p>
     <button class="install" id="install" type="button">Instalar la app</button>
   </header>
   <nav class="tabs" aria-label="Secciones">
@@ -203,6 +203,7 @@ function device() {
   }
   return id;
 }
+device.nuevo = () => crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 function rated(id, set) {
   try { const s = JSON.parse(localStorage.getItem("mp-rated") || "[]"); if (set) { s.push(id); localStorage.setItem("mp-rated", JSON.stringify(s)); } return s.includes(id); } catch { return false; }
 }
@@ -238,6 +239,18 @@ function specGroups(p) {
   return [...g.entries()].map(([sp, xs]) => ({ sp, xs, tiendas: new Set(xs.map(x => x.s)).size, min: Math.min(...xs.map(x => cmp(p, x))) }));
 }
 
+// moteur de recherche : toutes les pieces des boutiques auto
+const SINON = { plumilla: ["limpiaparabrisa", "escobilla", "wiper"], limpiaparabrisa: ["plumilla", "escobilla"], escobilla: ["plumilla", "limpiaparabrisa"],
+  amortiguador: ["shock"], llanta: ["neumatico", "caucho"], neumatico: ["llanta"], bateria: ["acumulador"], foco: ["bombillo", "bombilla"], bombillo: ["foco"],
+  pastilla: ["balata", "freno"], balata: ["pastilla"], radiador: ["radiator"], bujia: ["spark"], retrovisor: ["espejo"], espejo: ["retrovisor"] };
+const raiz = w => w.length > 4 ? w.replace(/(es|s)$/, "") : w;          // amortiguadores -> amortiguador
+function buscarCatalogo(words) {
+  if (!DATA.catalogo || !words.length) return [];
+  if (!DATA._c) DATA._c = DATA.catalogo.map(c => ({ s: c[0], n: c[1], p: c[2], pa: c[3], url: c[4], stock: c[5], h: fold(c[1]) }));
+  const alts = words.map(w => { const r = raiz(w); return [r, ...(SINON[r] || [])]; });
+  return DATA._c.filter(c => alts.every(a => a.some(w => c.h.includes(w))));
+}
+
 function viewRepuestos() {
   tab("p");
   const words = fold(q).split(/\s+/).filter(Boolean);
@@ -245,26 +258,39 @@ function viewRepuestos() {
   // une recherche avec des chiffres (205/55r16, 5w30, 24f) cherche d'abord une mesure
   const medidas = k.length >= 2 && /\d/.test(k) ? DATA.productos.flatMap(p => specGroups(p).filter(g => key(g.sp).includes(k)).map(g => ({ p, ...g })))
     .sort((a, b) => b.tiendas - a.tiendas || natural(a.sp, b.sp)) : [];
-  const hay = p => p._h || (p._h = fold([p.nombre, p.categoria, ...p.items.map(x => x.n + " " + (x.m || ""))].join(" ")));
-  const list = DATA.productos.filter(p => words.every(w => hay(p).includes(w)));
-  const found = medidas.length + list.length;
+  const hay = p => p._h || (p._h = fold([p.nombre, p.categoria].join(" ")));
+  const list = words.length ? DATA.productos.filter(p => words.every(w => hay(p).includes(raiz(w)))) : DATA.productos;
+  const piezas = buscarCatalogo(words);
+  const found = medidas.length + list.length + piezas.length;
+  const S = DATA.tiendas;
   $("#view").innerHTML = `
     <div class="search">
-      <input type="search" id="q" value="${esc(q)}" placeholder="Ej.: 205/55 R16, 20W-50, batería 24F" aria-label="Buscar repuesto o medida" autocomplete="off">
+      <input type="search" id="q" value="${esc(q)}" placeholder="Ej.: amortiguador, radiador, 205/55 R16" aria-label="Buscar repuesto o medida" autocomplete="off">
+      ${q ? "" : `<div class="count">${(DATA.catalogo || []).length.toLocaleString("es-PA")} repuestos y accesorios en ${Object.keys(S).length} tiendas. Prueba: amortiguador, radiador, carburador, filtro, foco H4…</div>`}
     </div>
     ${medidas.length ? `<h3 class="sec">Medidas encontradas</h3><ul class="list">${medidas.slice(0, shown).map(m => `<li><a class="row" href="#i/${m.p.id}/${encodeURIComponent(m.sp)}">
         <span class="spec">${esc(m.sp)}</span>
         <span class="mprice"><small>desde</small><b>${money(m.min)}</b>${m.p.medida === "l" ? `<small>${BASE.l}</small>` : ""}</span>
         <span class="msub">${esc(m.p.nombre)} · ${m.xs.length} opciones en ${m.tiendas} tienda${m.tiendas > 1 ? "s" : ""}</span>
       </a></li>`).join("")}</ul>` : ""}
-    ${list.length ? `${medidas.length ? '<h3 class="sec">Categorías</h3>' : ""}<ul class="list" style="${medidas.length ? "" : "margin-top:8px"}">${list.map(p => {
+    ${list.length ? `<h3 class="sec">${q ? "Comparar por medida" : "Comparar por medida o tipo"}</h3><ul class="list">${list.map(p => {
       const min = Math.min(...p.items.map(x => cmp(p, x)));
       return `<li><a class="row" href="#i/${p.id}">
         <span class="mname">${esc(p.nombre)}</span>
         <span class="mprice"><small>desde</small><b>${money(min)}</b>${p.medida === "l" ? `<small>${BASE.l}</small>` : ""}</span>
         <span class="msub">${p.items.length} producto${p.items.length > 1 ? "s" : ""} en ${p.tiendas} tienda${p.tiendas > 1 ? "s" : ""}</span>
       </a></li>`; }).join("")}</ul>` : ""}
-    ${found ? "" : `<div class="msg"><strong>No encontramos «${esc(q)}».</strong><br>Prueba con la medida escrita como en la llanta (ej. 185/65 R15) o la viscosidad del aceite (ej. 10W-30).</div>`}`;
+    ${piezas.length ? `<h3 class="sec">${piezas.length} repuesto${piezas.length > 1 ? "s" : ""} en las tiendas, del más barato al más caro</h3>
+      <p style="margin:0 0 8px;color:var(--muted);font-size:.85rem">Revisa que sea compatible con tu vehículo (marca, modelo y año) antes de comprar. Agrega el modelo a la búsqueda, ej. «amortiguador corolla».</p>
+      <ul class="list">${piezas.slice(0, shown).map(x => `<li><a class="art" href="${esc(x.url || "#")}" target="_blank" rel="noopener" data-s="${esc(x.s)}">
+        <span class="nm">${esc(x.n)}${x.pa ? '<span class="tag promo">Oferta</span>' : ""}${x.stock === 0 ? '<span class="tag out">Agotado</span>' : ""}</span>
+        <span class="pr">${money(x.p)}${x.pa ? `<s>${money(x.pa)}</s>` : ""}</span>
+        <span class="sz">${esc(S[x.s] || x.s)}</span></a></li>`).join("")}</ul>
+      ${piezas.length > shown ? `<button class="more" id="more" type="button">Ver más (${piezas.length - shown})</button>` : ""}` : ""}
+    ${found ? "" : `<div class="msg"><strong>No encontramos «${esc(q)}».</strong><br>Prueba con otra palabra (ej. «radiador» en vez de «radiador de agua») o la medida escrita como en la llanta (ej. 185/65 R15). Solo mostramos repuestos que las tiendas publican con precio en internet.</div>`}`;
+  bindStores();
+  const more = $("#more");
+  if (more) more.addEventListener("click", () => { shown += 60; viewRepuestos(); });
   bindSearch(viewRepuestos);
   if (q) statSearch("repuestos", q, found > 0);
 }
@@ -347,7 +373,7 @@ function viewOfertas() {
     <div class="chips" role="group" aria-label="Tiendas">
       ${ts.map(s => `<button class="chip" type="button" data-s="${esc(s)}" aria-pressed="${s === tienda}">${esc(s === "Todos" ? s : (S[s] || s))}</button>`).join("")}
     </div>
-    ${list.length ? `<ul class="list">${list.map(o => `<li><a class="of" href="${o.sp ? `#i/${o.i}/${encodeURIComponent(o.sp)}` : `#i/${o.i}`}">
+    ${list.length ? `<ul class="list">${list.map(o => `<li><a class="of" href="${o.i === 0 ? esc(o.url || "#") : o.sp ? `#i/${o.i}/${encodeURIComponent(o.sp)}` : `#i/${o.i}`}"${o.i === 0 ? ' target="_blank" rel="noopener"' : ""}>
         <span class="pct">−${o.d}%</span>
         <span class="nm">${esc(o.n)}${o.nueva ? '<span class="tag new">Nueva</span>' : ""}${o.v === "minimo" ? '<span class="tag cheap">Más bajo en 30 días</span>' : ""}</span>
         <span class="pr">${money(o.p)}<s>${money(o.pa)}</s></span>
@@ -478,7 +504,7 @@ function showForm(t) {
     <div id="ferr" class="err" role="alert"></div>
     <div class="actions" style="margin:0"><button class="btn main" type="submit" id="enviar">Enviar reseña</button><button class="btn" type="button" id="cancelar">Cancelar</button></div>
   </form>`;
-  $("#cancelar").addEventListener("click", () => viewTaller(t.id));
+  $("#cancelar").addEventListener("click", () => allTalleres().some(x => x.id === t.id) ? viewTaller(t.id) : ($("#formbox").innerHTML = ""));
   $("#rf").addEventListener("submit", async e => {
     e.preventDefault();
     const notas = {};
@@ -537,11 +563,14 @@ function viewAgregar() {
     if (!$("#direccion").value.trim() && !pos) { $("#aerr").textContent = "Indica la dirección o usa tu ubicación."; return; }
     $("#aerr").textContent = ""; $("#aenviar").disabled = true;
     const body = { nombre, tipo: $("#tipo").value, direccion: $("#direccion").value.trim() || null, telefono: $("#telefono").value.trim() || null,
-                   lat: pos?.lat ?? null, lon: pos?.lon ?? null, dispositivo: device() };
+                   lat: pos?.lat ?? null, lon: pos?.lon ?? null, dispositivo: device(), ref: device.nuevo() };
     try {
       const r = await sb("talleres_propuestos", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
       if (!r.ok) throw new Error(r.status);
-      $("#af").outerHTML = `<div class="ok"><strong>¡Gracias!</strong><br>Revisaremos el taller y aparecerá en la lista en 1 o 2 días.</div>`;
+      $("#af").outerHTML = `<div class="ok"><strong>¡Gracias!</strong><br>Revisaremos el taller y aparecerá en la lista en 1 o 2 días.</div>
+        <div id="formbox" style="margin-top:12px"><button class="btn main" type="button" id="calificar">Calificarlo ahora</button></div>`;
+      const t = { id: "p-" + body.ref, n: nombre };
+      $("#calificar").addEventListener("click", () => showForm(t));
       stat("taller-propuesto", "Taller propuesto", true);
     } catch { $("#aerr").textContent = "No se pudo enviar. Revisa tu conexión e inténtalo de nuevo."; $("#aenviar").disabled = false; }
   });
@@ -565,7 +594,7 @@ async function loadReviews() {
   try {
     const [n, a] = await Promise.all([sb("notas_talleres?select=*"), sb("talleres_aprobados?select=*")]);
     if (n.ok) for (const x of await n.json()) NOTAS[x.taller_id] = { n: +x.n, general: +x.general, precio: +x.precio, calidad: +x.calidad, honestidad: +x.honestidad, plazo: +x.plazo };
-    if (a.ok) EXTRA = (await a.json()).map(x => ({ id: "p-" + x.id, n: x.nombre, t: x.tipo, dir: x.direccion || "", tel: x.telefono || "", lat: x.lat, lon: x.lon, web: "", h: "" }));
+    if (a.ok) EXTRA = (await a.json()).map(x => ({ id: "p-" + (x.ref || x.id), n: x.nombre, t: x.tipo, dir: x.direccion || "", tel: x.telefono || "", lat: x.lat, lon: x.lon, web: "", h: "" }));
     if (DATA) { DATA._t = null; if (/^#t|^#talleres/.test(location.hash)) route(); }
   } catch {}
 }
