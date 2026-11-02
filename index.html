@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MotorPrecios Panamá</title>
 <meta name="description" content="Compara precios de aceite, llantas y baterías en Panamá, y encuentra talleres calificados por otros conductores.">
-<meta name="theme-color" content="#1D2228">
+<meta name="theme-color" content="#0057B8">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -17,9 +17,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #1D2228; --bg: #F1EFEA; --paper: #FFFFFF; --line: #DCD8CF; --muted: #626A70;
-    --cheap: #0E7A55; --cheap-soft: #DCEFE6; --promo: #B5560F; --promo-soft: #FBE7D7;
-    --star: #C98A12; --star-off: #D9D4C8; --accent: #F2B33D;
+    /* couleurs du drapeau du Panama : bleu, rouge, blanc */
+    --ink: #13233F; --bg: #F5F8FC; --paper: #FFFFFF; --line: #DCE4EF; --muted: #5B6880;
+    --blue: #0057B8; --red: #D21034;
+    --cheap: #0057B8; --cheap-soft: #E5EEFA; --promo: #D21034; --promo-soft: #FDE8EB;
+    --star: #E0A100; --star-off: #D5DCE6; --accent: #D21034;
     --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
     --body: "Public Sans", "Segoe UI", system-ui, sans-serif;
   }
@@ -31,13 +33,17 @@
   :focus-visible { outline: 3px solid var(--cheap); outline-offset: 2px; }
 
   header h1 { font: 700 1.75rem/1.1 var(--display); margin: 6px 0 4px; letter-spacing: -0.02em; }
-  header h1 span { display: inline-block; width: .55em; height: .55em; background: var(--accent); border-radius: 3px; margin-left: 4px; vertical-align: .08em; }
+  body::before { content: ""; display: block; height: 6px; background: linear-gradient(90deg, var(--blue) 0 50%, var(--red) 50% 100%); }
+  header h1 { display: flex; align-items: center; gap: 10px; }
+  header h1 svg { width: 1.45em; height: 1em; flex: none; border-radius: 3px; box-shadow: 0 0 0 1px var(--line); }
+  header h1 b { color: var(--blue); font-weight: 700; }
+  header h1 b + b { color: var(--red); }
   header p { margin: 0; color: var(--muted); }
-  .install { display: none; margin-top: 12px; background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
+  .install { display: none; margin-top: 12px; background: var(--blue); color: #fff; border: 0; border-radius: 999px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
 
   .tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 4px; margin-top: 18px; }
   .tabs a { text-align: center; padding: 9px 0; border-radius: 9px; color: var(--muted); text-decoration: none; font-weight: 600; font-size: .95rem; }
-  .tabs a[aria-current=page] { background: var(--ink); color: #fff; }
+  .tabs a[aria-current=page] { background: var(--blue); color: #fff; }
   .tabs .n { display: inline-block; margin-left: 5px; font-size: .72rem; background: var(--promo); color: #fff; border-radius: 999px; padding: 0 6px; }
 
   .search { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 14px 0 8px; }
@@ -49,7 +55,7 @@
   .chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
   .chip { flex: none; border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 6px 14px; font-size: .9rem; cursor: pointer; white-space: nowrap; }
-  .chip[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .chip[aria-pressed=true] { background: var(--blue); border-color: var(--blue); color: #fff; }
 
   h3.sec { font: 600 .8rem/1 var(--body); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 18px 0 8px; }
   ul.list { list-style: none; margin: 0; padding: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
@@ -111,7 +117,7 @@
   .crit .bar span { display: block; height: 100%; background: var(--star); }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 9px 16px; font-weight: 600; color: inherit; text-decoration: none; cursor: pointer; }
-  .btn.main { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .btn.main { background: var(--blue); border-color: var(--blue); color: #fff; }
   .btn[disabled] { opacity: .5; cursor: default; }
   .rev { padding: 13px 16px; }
   .rev .top { display: flex; justify-content: space-between; gap: 8px; font-size: .85rem; color: var(--muted); }
@@ -147,7 +153,7 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>MotorPrecios<span aria-hidden="true"></span></h1>
+    <h1><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#fff"/><rect x="15" width="15" height="10" fill="#D21034"/><rect y="10" width="15" height="10" fill="#0057B8"/><path fill="#0057B8" d="M7.5 2.2l.9 2.7h2.8l-2.3 1.7.9 2.7-2.3-1.7-2.3 1.7.9-2.7-2.3-1.7h2.8z"/><path fill="#D21034" d="M22.5 12.2l.9 2.7h2.8l-2.3 1.7.9 2.7-2.3-1.7-2.3 1.7.9-2.7-2.3-1.7h2.8z"/></svg><span><b>Motor</b><b>Precios</b></span></h1>
     <p>Repuestos y accesorios al mejor precio en Panamá, y talleres calificados por otros conductores.</p>
     <button class="install" id="install" type="button">Instalar la app</button>
   </header>
